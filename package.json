@@ -1,5 +1,5 @@
 {
-  "name": "electron-clipboard-extended",
+  "name": "leija-electron-clipboard-extended",
   "version": "1.1.1",
   "description": "Electron clipboard extended with event handler for Text and Image change",
   "main": "index.js",
@@ -14,7 +14,7 @@
     "electron",
     "clipboard"
   ],
-  "author": "Arjun G",
+  "author": "Arjun G, Leija Software AB",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/arjun-g/electron-clipboard-extended/issues"
