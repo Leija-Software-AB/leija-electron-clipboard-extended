@@ -15,12 +15,10 @@ const getPowerShell = () => {
       return "powershell";
     case "darwin":
       // unpack powershell from lib
-
-      return "./lib/pwsh";
+      return "./lib/powershell-macos/pwsh";
     case "linux":
       // unpack powershell from lib
-
-      return "./lib/pwsh";
+      return "./lib/powershell-linux/pwsh";
     default:
       return "powershell";
   }
