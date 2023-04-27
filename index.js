@@ -1,14 +1,36 @@
 const { clipboard } = require("electron");
 const EventEmitter = require("./EventEmitter");
-const { PowerShell } = require("node-powershell");
+const { spawnSync, spawn } = require("child_process");
 const clipboardEmitter = new EventEmitter();
 
 /* Get-Clipboard -Format FileDropList -Raw
 
 Set-Clipboard -Path 'H:\My Documents\linux-basics-1-2-exercises-swedish.pdf' [-Append] */
 
+// unpack powershell from lib depending on os platform
+
+const getPowerShell = () => {
+  switch (process.platform) {
+    case "win32":
+      return "powershell";
+    case "darwin":
+      // unpack powershell from lib
+
+      return "./lib/pwsh";
+    case "linux":
+      // unpack powershell from lib
+
+      return "./lib/pwsh";
+    default:
+      return "powershell";
+  }
+};
+
 const getFileClip = () =>
-  PowerShell.$("Get-Clipboard -Format FileDropList -Raw");
+  spawnSync(getPowerShell(), [
+    "-Command",
+    "Get-Clipboard -Format FileDropList",
+  ]).stdout.toString();
 
 let watcherId = null,
   previousText = clipboard.readText(),
