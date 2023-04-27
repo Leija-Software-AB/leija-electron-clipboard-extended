@@ -28,13 +28,31 @@ clipboard.getPowerShell = () => {
 clipboard.readFile = () =>
   spawnSync(clipboard.getPowerShell(), [
     "-Command",
-    "Get-Clipboard -Format FileDropList",
+    "Get-Clipboard -Format FileDropList -Raw",
   ]).stdout.toString();
+
+clipboard.readFileArray = () =>
+  clipboard
+    .readFile()
+    .split("\r\n")
+    .filter((line) => line);
+
+clipboard.writeFile = (path) =>
+  spawnSync(clipboard.getPowerShell(), [
+    "-Command",
+    `Set-Clipboard -Path '${path}'`,
+  ]);
+
+clipboard.writeFileArray = (paths) =>
+  spawnSync(clipboard.getPowerShell(), [
+    "-Command",
+    `Set-Clipboard -Path '${paths.join("', '")}' -Append`,
+  ]);
 
 let watcherId = null,
   previousText = clipboard.readText(),
   previousImage = clipboard.readImage(),
-  previousFile = readFile();
+  previousFile = clipboard.readFile();
 
 clipboard.on = (event, listener) => {
   clipboardEmitter.on(event, listener);
