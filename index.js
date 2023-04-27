@@ -1,6 +1,7 @@
 const { clipboard } = require("electron");
 const EventEmitter = require("./EventEmitter");
-const { spawnSync, spawn } = require("child_process");
+const { spawnSync } = require("child_process");
+const path = require("path");
 const clipboardEmitter = new EventEmitter();
 
 /* Get-Clipboard -Format FileDropList -Raw
@@ -9,23 +10,23 @@ Set-Clipboard -Path 'H:\My Documents\linux-basics-1-2-exercises-swedish.pdf' [-A
 
 // unpack powershell from lib depending on os platform
 
-const getPowerShell = () => {
+clipboard.getPowerShell = () => {
   switch (process.platform) {
     case "win32":
       return "powershell";
     case "darwin":
       // unpack powershell from lib
-      return "./lib/powershell-macos/pwsh";
+      return path.join(__dirname, "./lib/powershell-macos/pwsh");
     case "linux":
       // unpack powershell from lib
-      return "./lib/powershell-linux/pwsh";
+      return path.join(__dirname, "./lib/powershell-linux/pwsh");
     default:
       return "powershell";
   }
 };
 
-const getFileClip = () =>
-  spawnSync(getPowerShell(), [
+clipboard.readFile = () =>
+  spawnSync(clipboard.getPowerShell(), [
     "-Command",
     "Get-Clipboard -Format FileDropList",
   ]).stdout.toString();
@@ -33,7 +34,7 @@ const getFileClip = () =>
 let watcherId = null,
   previousText = clipboard.readText(),
   previousImage = clipboard.readImage(),
-  previousFile = getFileClip();
+  previousFile = readFile();
 
 clipboard.on = (event, listener) => {
   clipboardEmitter.on(event, listener);
@@ -58,7 +59,7 @@ clipboard.startWatching = () => {
         clipboardEmitter.emit("text-changed");
       if (isDiffImage(previousImage, (previousImage = clipboard.readImage())))
         clipboardEmitter.emit("image-changed");
-      if (isDiffFile(previousFile, (previousFile = getFileClip())))
+      if (isDiffFile(previousFile, (previousFile = clipboard.readFile())))
         clipboardEmitter.emit("file-changed");
     }, 500);
   return clipboard;
