@@ -1,35 +1,36 @@
 const { clipboard } = require("electron");
 const EventEmitter = require("./EventEmitter");
 const { spawnSync } = require("child_process");
-const path = require("path");
 const clipboardEmitter = new EventEmitter();
 
-/* Get-Clipboard -Format FileDropList -Raw
+/* 
+For windows:
+Get-Clipboard -Format FileDropList -Raw
 
-Set-Clipboard -Path 'H:\My Documents\linux-basics-1-2-exercises-swedish.pdf' [-Append] */
+Set-Clipboard -Path 'H:\My Documents\linux-basics-1-2-exercises-swedish.pdf' [-Append] 
 
-// unpack powershell from lib depending on os platform
+For linux:
 
-clipboard.getPowerShell = () => {
-  switch (process.platform) {
-    case "win32":
-      return "powershell";
-    case "darwin":
-      // unpack powershell from lib
-      return path.join(__dirname, "./lib/powershell-macos/pwsh");
-    case "linux":
-      // unpack powershell from lib
-      return path.join(__dirname, "./lib/powershell-linux/pwsh");
-    default:
-      return "powershell";
+https://github.com/astrand/xclip
+
+For mac:
+xclip also?
+or perhaps ther automator service?
+
+*/
+
+clipboard.readFile = () => {
+  if (process.platform === "win32") {
+    return spawnSync("powershell", [
+      "-Command",
+      "Get-Clipboard -Format FileDropList -Raw",
+    ]).stdout.toString();
+  } else if (process.platform === "darwin") {
+    return spawnSync("");
+  } else if (process.platform === "linux") {
+    return spawnSync("");
   }
 };
-
-clipboard.readFile = () =>
-  spawnSync(clipboard.getPowerShell(), [
-    "-Command",
-    "Get-Clipboard -Format FileDropList -Raw",
-  ]).stdout.toString();
 
 clipboard.readFileArray = () =>
   clipboard
@@ -38,13 +39,10 @@ clipboard.readFileArray = () =>
     .filter((line) => line);
 
 clipboard.writeFile = (path) =>
-  spawnSync(clipboard.getPowerShell(), [
-    "-Command",
-    `Set-Clipboard -Path '${path}'`,
-  ]);
+  spawnSync("powershell", ["-Command", `Set-Clipboard -Path '${path}'`]);
 
 clipboard.writeFileArray = (paths) =>
-  spawnSync(clipboard.getPowerShell(), [
+  spawnSync("powershell", [
     "-Command",
     `Set-Clipboard -Path '${paths.join("', '")}' -Append`,
   ]);
