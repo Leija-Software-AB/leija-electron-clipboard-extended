@@ -19,38 +19,65 @@ or perhaps ther automator service?
 
 */
 
-clipboard.readFile = () => {
+clipboard.readFiles = () => {
   if (process.platform === "win32") {
     return spawnSync("powershell", [
       "-Command",
       "Get-Clipboard -Format FileDropList -Raw",
-    ]).stdout.toString();
+    ])
+      .stdout.toString()
+      .split("\r\n")
+      .filter((line) => line);
   } else if (process.platform === "darwin") {
-    return spawnSync("");
+    const returnArray = [];
+    // check if pbpaste contins a file path
+    const clip = clipboard.read("NSFilenamesPboardType");
+
+    if (clip) {
+      const lines = clip.split("\n");
+      lines.forEach((line) => {
+        // Regex match for file path
+        if (line.match(/<string>(.*)<\/string>/)) {
+          // Remove <string> and </string> from the string
+          const filePath = line
+            .replace(/<string>(.*)<\/string>/, "$1")
+            .replace("\t", "");
+          returnArray.push(filePath);
+        }
+      });
+    }
+    return returnArray;
   } else if (process.platform === "linux") {
     return spawnSync("");
   }
 };
 
-clipboard.readFileArray = () =>
-  clipboard
-    .readFile()
-    .split("\r\n")
-    .filter((line) => line);
-
-clipboard.writeFile = (path) =>
-  spawnSync("powershell", ["-Command", `Set-Clipboard -Path '${path}'`]);
-
-clipboard.writeFileArray = (paths) =>
-  spawnSync("powershell", [
-    "-Command",
-    `Set-Clipboard -Path '${paths.join("', '")}' -Append`,
-  ]);
+clipboard.writeFiles = (paths) => {
+  if (process.platform == "win32") {
+    spawnSync("powershell", [
+      "-Command",
+      `Set-Clipboard -Path '${paths.join("', '")}' -Append`,
+    ]);
+  } else if (process.platform === "darwin") {
+    return clipboard.writeBuffer(
+      "NSFilenamesPboardType",
+      Buffer.from(`
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+          <array>
+            ${paths.map((path) => `<string>${path}</string>`).join("\n")}
+          </array>
+        </plist>
+      `)
+    );
+  }
+};
 
 let watcherId = null,
   previousText = clipboard.readText(),
   previousImage = clipboard.readImage(),
-  previousFile = clipboard.readFile();
+  previousFile = clipboard.readFiles();
 
 clipboard.on = (event, listener) => {
   clipboardEmitter.on(event, listener);
@@ -75,7 +102,7 @@ clipboard.startWatching = () => {
         clipboardEmitter.emit("text-changed");
       if (isDiffImage(previousImage, (previousImage = clipboard.readImage())))
         clipboardEmitter.emit("image-changed");
-      if (isDiffFile(previousFile, (previousFile = clipboard.readFile())))
+      if (isDiffFile(previousFile, (previousFile = clipboard.readFiles())))
         clipboardEmitter.emit("file-changed");
     }, 500);
   return clipboard;
@@ -96,7 +123,7 @@ function isDiffImage(img1, img2) {
 }
 
 function isDiffFile(file1, file2) {
-  return file2 && file1 !== file2;
+  return file2 && file1.toString() !== file2.toString();
 }
 
 module.exports = clipboard;
