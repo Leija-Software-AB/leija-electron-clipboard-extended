@@ -53,11 +53,20 @@ clipboard.readFiles = () => {
 };
 
 clipboard.writeFiles = (paths) => {
+  if (!Array.isArray(paths)) paths = [paths];
+
   if (process.platform == "win32") {
-    spawnSync("powershell", [
-      "-Command",
-      `Set-Clipboard -Path '${paths.join("', '")}' -Append`,
-    ]);
+    paths.forEach((path) => {
+      // check if path is first in iteration
+      if (path === paths[0]) {
+        spawnSync("powershell", ["-Command", `Set-Clipboard -Path '${path}'`]);
+      } else {
+        spawnSync("powershell", [
+          "-Command",
+          `Set-Clipboard -Path '${path}' -Append`,
+        ]);
+      }
+    });
   } else if (process.platform === "darwin") {
     return clipboard.writeBuffer(
       "NSFilenamesPboardType",
