@@ -3,22 +3,6 @@ const EventEmitter = require("./EventEmitter");
 const { spawnSync } = require("child_process");
 const clipboardEmitter = new EventEmitter();
 
-/* 
-For windows:
-Get-Clipboard -Format FileDropList -Raw
-
-Set-Clipboard -Path 'H:\My Documents\linux-basics-1-2-exercises-swedish.pdf' [-Append] 
-
-For linux:
-
-https://github.com/astrand/xclip
-
-For mac:
-xclip also?
-or perhaps ther automator service?
-
-*/
-
 clipboard.readFiles = () => {
   if (process.platform === "win32") {
     return spawnSync("powershell", [
@@ -47,8 +31,8 @@ clipboard.readFiles = () => {
       });
     }
     return returnArray;
-  } else if (process.platform === "linux") {
-    return spawnSync("");
+  } else {
+    throw new Error("Unsupported platform");
   }
 };
 
@@ -80,6 +64,8 @@ clipboard.writeFiles = (paths) => {
         </plist>
       `)
     );
+  } else {
+    throw new Error("Unsupported platform");
   }
 };
 
