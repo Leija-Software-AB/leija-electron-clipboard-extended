@@ -11,8 +11,7 @@ clipboard.readFiles = () => {
     ])
       .stdout.toString()
       .split("\r\n")
-      .filter((line) => line)
-      .trim();
+      .filter((line) => line);
   } else if (process.platform === "darwin") {
     const returnArray = [];
     // check if pbpaste contins a file path
