@@ -7,7 +7,7 @@ clipboard.readFiles = () => {
   if (process.platform === "win32") {
     return spawnSync("powershell", [
       "-Command",
-      "Get-Clipboard -Format FileDropList -Raw",
+      "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Get-Clipboard -Format FileDropList -Raw",
     ])
       .stdout.toString()
       .split("\r\n")
