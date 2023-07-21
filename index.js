@@ -110,6 +110,8 @@ clipboard.stopWatching = () => {
   return clipboard;
 };
 
+clipboard.watcher = watcherId;
+
 function isDiffText(str1, str2) {
   return str2 && str1 !== str2;
 }
