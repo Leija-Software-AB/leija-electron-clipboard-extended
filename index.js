@@ -109,7 +109,7 @@ clipboard.startWatching = () => {
 clipboard.stopWatching = () => {
   if (watcherId) clearInterval(watcherId);
   watcherId = null;
-  clipboardEmitter.watcher = null;
+  clipboard.watcher = null;
   return clipboard;
 };
 
