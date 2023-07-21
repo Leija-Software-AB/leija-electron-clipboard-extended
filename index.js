@@ -101,12 +101,15 @@ clipboard.startWatching = () => {
       if (isDiffFile(previousFile, (previousFile = clipboard.readFiles())))
         clipboardEmitter.emit("file-changed");
     }, 500);
+
+  clipboard.watcher = watcherId;
   return clipboard;
 };
 
 clipboard.stopWatching = () => {
   if (watcherId) clearInterval(watcherId);
   watcherId = null;
+  clipboardEmitter.watcher = null;
   return clipboard;
 };
 
