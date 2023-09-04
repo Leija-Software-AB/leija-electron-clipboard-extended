@@ -1,6 +1,6 @@
 const { clipboard } = require("electron");
 const EventEmitter = require("./EventEmitter");
-const { spawnSync } = require("child_process");
+const { spawnSync, spawn } = require("child_process");
 const clipboardEmitter = new EventEmitter();
 
 let psWatcher = null;
