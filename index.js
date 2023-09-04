@@ -3,15 +3,29 @@ const EventEmitter = require("./EventEmitter");
 const { spawnSync } = require("child_process");
 const clipboardEmitter = new EventEmitter();
 
+let psWatcher = null;
+
 clipboard.readFiles = () => {
   if (process.platform === "win32") {
-    return spawnSync("powershell", [
-      "-Command",
-      "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Get-Clipboard -Format FileDropList -Raw",
-    ])
-      .stdout.toString()
-      .split("\r\n")
-      .filter((line) => line);
+    if (!psWatcher) {
+      const ses = spawn("powershell", [
+        "-Command",
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Get-Clipboard -Format FileDropList -Raw",
+      ]);
+
+      ses.stdout.on("data", (data) => {
+        psWatcher = data
+          .toString()
+          .split("\r\n")
+          .filter((line) => line);
+      });
+
+      ses.stderr.on("data", (data) => {
+        console.error(`stderr: ${data}`);
+      });
+    } else {
+      return psWatcher;
+    }
   } else if (process.platform === "darwin") {
     const returnArray = [];
     // check if pbpaste contins a file path
