@@ -14,6 +14,8 @@ clipboard.readFiles = () => {
       ]);
 
       ses.stdout.on("data", (data) => {
+        if (!data) return;
+
         psWatcher = data
           .toString()
           .split("\r\n")
