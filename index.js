@@ -3,7 +3,7 @@ const EventEmitter = require("./EventEmitter");
 const { spawnSync, spawn } = require("child_process");
 const clipboardEmitter = new EventEmitter();
 
-let psWatcher = null;
+let psWatcher = "";
 
 clipboard.readFiles = () => {
   if (process.platform === "win32") {
