@@ -3,7 +3,7 @@ const EventEmitter = require("./EventEmitter");
 const { spawnSync, spawn } = require("child_process");
 const clipboardEmitter = new EventEmitter();
 
-let psWatcher = "";
+let psWatcher = [];
 
 clipboard.readFiles = () => {
   if (process.platform === "win32") {
@@ -140,7 +140,7 @@ function isDiffImage(img1, img2) {
 }
 
 function isDiffFile(file1, file2) {
-  return file2 && file1 !== file2;
+  return file2 && file1.toString() !== file2.toString();
 }
 
 module.exports = clipboard;
