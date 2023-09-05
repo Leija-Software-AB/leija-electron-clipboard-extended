@@ -10,7 +10,7 @@ clipboard.readFiles = () => {
     if (!psWatcher) {
       const ses = spawn("powershell", [
         "-Command",
-        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Get-Clipboard -Format FileDropList -Raw",
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; while ($true) { Get-Clipboard -Format FileDropList -Raw; Start-Sleep -Seconds 0.5 }",
       ]);
 
       ses.stdout.on("data", (data) => {
