@@ -10,7 +10,7 @@ clipboard.readFiles = () => {
     if (!psWatcher) {
       const ses = spawn("powershell", [
         "-Command",
-        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; while ($true) { Get-Clipboard -Format FileDropList -Raw; Start-Sleep -Seconds 0.5 }",
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; while ($true) { Get-Clipboard -Format FileDropList -Raw; Start-Sleep -Seconds 1 }",
       ]);
 
       ses.stdout.on("data", (data) => {
@@ -140,7 +140,7 @@ function isDiffImage(img1, img2) {
 }
 
 function isDiffFile(file1, file2) {
-  return file2 && file1.toString() !== file2.toString();
+  return file2 && file1 !== file2;
 }
 
 module.exports = clipboard;
