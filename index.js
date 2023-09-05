@@ -3,31 +3,9 @@ const EventEmitter = require("./EventEmitter");
 const { spawnSync, spawn } = require("child_process");
 const clipboardEmitter = new EventEmitter();
 
-let psWatcher = [];
-
 clipboard.readFiles = () => {
   if (process.platform === "win32") {
-    if (!psWatcher) {
-      const ses = spawn("powershell", [
-        "-Command",
-        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; while ($true) { Get-Clipboard -Format FileDropList -Raw; Start-Sleep -Seconds 1 }",
-      ]);
-
-      ses.stdout.on("data", (data) => {
-        if (!data) return;
-
-        psWatcher = data
-          .toString()
-          .split("\r\n")
-          .filter((line) => line);
-      });
-
-      ses.stderr.on("data", (data) => {
-        console.error(`stderr: ${data}`);
-      });
-    } else {
-      return psWatcher;
-    }
+    return previousFile;
   } else if (process.platform === "darwin") {
     const returnArray = [];
     // check if pbpaste contins a file path
@@ -89,7 +67,7 @@ clipboard.writeFiles = (paths) => {
 let watcherId = null,
   previousText = clipboard.readText(),
   previousImage = clipboard.readImage(),
-  previousFile = clipboard.readFiles();
+  previousFile = [];
 
 clipboard.on = (event, listener) => {
   clipboardEmitter.on(event, listener);
@@ -109,14 +87,38 @@ clipboard.off = (event, listener) => {
 
 clipboard.startWatching = () => {
   if (!watcherId)
-    watcherId = setInterval(() => {
-      if (isDiffText(previousText, (previousText = clipboard.readText())))
-        clipboardEmitter.emit("text-changed");
-      if (isDiffImage(previousImage, (previousImage = clipboard.readImage())))
-        clipboardEmitter.emit("image-changed");
-      if (isDiffFile(previousFile, (previousFile = clipboard.readFiles())))
-        clipboardEmitter.emit("file-changed");
-    }, 500);
+    if (process.platform === "win32") {
+      const ses = spawn("powershell", [
+        "-Command",
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; while ($true) { Get-Clipboard -Format FileDropList -Raw; Start-Sleep -Seconds 1 }",
+      ]);
+
+      ses.stdout.on("data", (data) => {
+        if (!data) return;
+
+        const files = data
+          .toString()
+          .split("\r\n")
+          .filter((line) => line);
+
+        if (files.toString() !== previousFile.toString()) {
+          clipboardEmitter.emit("file-changed");
+        }
+
+        previousFile = files;
+      });
+
+      ses.stderr.on("data", (data) => {
+        console.error(`stderr: ${data}`);
+      });
+    }
+
+  watcherId = setInterval(() => {
+    if (isDiffText(previousText, (previousText = clipboard.readText())))
+      clipboardEmitter.emit("text-changed");
+    if (isDiffImage(previousImage, (previousImage = clipboard.readImage())))
+      clipboardEmitter.emit("image-changed");
+  }, 500);
 
   clipboard.watcher = watcherId;
   return clipboard;
@@ -137,10 +139,6 @@ function isDiffText(str1, str2) {
 
 function isDiffImage(img1, img2) {
   return !img2.isEmpty() && img1.toDataURL() !== img2.toDataURL();
-}
-
-function isDiffFile(file1, file2) {
-  return file2 && file1.toString() !== file2.toString();
 }
 
 module.exports = clipboard;
